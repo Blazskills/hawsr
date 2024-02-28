@@ -138,5 +138,6 @@ ENV/
 env.bak/
 venv.bak/
 *.log
-*requirements/
+*requirements/production.txt
 app_cache/*
+codetemp.py
