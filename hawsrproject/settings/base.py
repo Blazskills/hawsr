@@ -35,7 +35,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "core_apps.account",
-    "core_apps.hawsr",
+    "core_apps.hawsr"
 ]
 
 
@@ -167,6 +167,6 @@ MEDIA_ROOT = str(ROOT_DIR / "mediafiles")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# AUTH_USER_MODEL = "account.User"
+AUTH_USER_MODEL = "account.User"
 
 APPEND_SLASH = False

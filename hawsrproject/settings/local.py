@@ -12,12 +12,20 @@ ADMINS = [("Ilesanmi Temitope", "ilesanmiisaac@gmail.com")]
 # TODO:Change from localhost DOMAIN NAME  of the production server
 
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ROOT_DIR / 'db.sqlite3',
+    }
+}
+
+
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
     default="oXPWQPA3C3sdBCuBeXUKq3LBp9YDJ33-306p9EAKf1ja1xkWnKY",
 )
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:8080", "http://127.0.0.1:8080",
                         "http://localhost:5173", "http://localhost:3000",
