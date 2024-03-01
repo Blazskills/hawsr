@@ -121,6 +121,7 @@ class CreateUserView(APIView):
                     last_name=data.get("last_name"),
                     phone=data.get("phone"),
                     role=data.get("role"),
+                    is_active=True,
                 )
                 user_password = data.get('password')
                 password_validation.validate_password(

@@ -40,11 +40,10 @@ class AlreadyLoginUserException(APIException):
     default_code = "403"
 
 
-
 class NotAdminException(APIException):
     status_code = status.HTTP_401_UNAUTHORIZED
     default_detail = {"status": "error",
-                      "message": "You Must Be An Admin To Perform User CRUD"}
+                      "message": "You Must Be An Admin To Perform any CRUD Operation"}
     default_code = "101"
 
 
