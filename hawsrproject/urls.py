@@ -10,6 +10,7 @@ urlpatterns = [
         include(
             [
                 path("account/", include("core_apps.account.urls")),
+                path("hawsr/", include("core_apps.hawsr.urls")),
 
             ]
         ),

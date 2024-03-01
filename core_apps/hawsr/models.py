@@ -15,6 +15,7 @@ class WORKER_TYPE(models.IntegerChoices):
 class Worker(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     worker_type = models.IntegerField(choices=WORKER_TYPE.choices, default=WORKER_TYPE.WORKER, db_index=True)
+    # TODO:Create update for is_busy. User should be able to update worker schedules
     is_busy = models.BooleanField(default=False, db_index=True)
 
     def _str_(self):
@@ -48,7 +49,7 @@ class Office(BaseModel):
 
 
 class UserOffice(BaseModel):
-    Office = models.ForeignKey(Office, on_delete=models.CASCADE, null=True)
+    office = models.ForeignKey(Office, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def _str_(self):

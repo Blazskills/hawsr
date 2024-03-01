@@ -14,7 +14,6 @@ class DisallowedUserPermission(permissions.BasePermission):
 
 class DisallowedNotAdminManagementPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        print(request.user)
         if request.user.get_role_display() != "Admin":
             raise NotAdminException
         return True

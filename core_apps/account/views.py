@@ -3,23 +3,22 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 
 from core_apps.account.forms import User
-from core_apps.account.serializers import UserCreateSerializer
+from core_apps.account.models import USER_TYPE
+from core_apps.account.serializers import UserCreateSerializer, UserSerializer, UserUpdateSerializer
 from core_apps.account.tokens import create_jwt_pair_for_user
-
-
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import AuthenticationFailed
-
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
-
-
 from rest_framework import permissions, status
-
+from core_apps.hawsr.models import Worker
 from utils.decorators import DisallowedNotAdminManagementPermission, DisallowedUserPermission
-
+from django.contrib.auth import password_validation
+from rest_framework import generics
+from django.contrib.auth import get_user_model
 
 # Create your views here.
+
 
 class testaccount(APIView):
     authentication_classes = []
@@ -30,6 +29,8 @@ class testaccount(APIView):
             "code": 200,
         }
         return Response(data)
+
+# Login view to have p
 
 
 class LoginView(APIView):
@@ -99,15 +100,36 @@ class LoginView(APIView):
                 status.HTTP_400_BAD_REQUEST,
             )
 
+# Create any type of user without authenticating
+
 
 class CreateUserView(APIView):
-    permission_classes = [permissions.IsAuthenticated, DisallowedUserPermission, DisallowedNotAdminManagementPermission]
+    # permission_classes = [permissions.IsAuthenticated, DisallowedUserPermission, DisallowedNotAdminManagementPermission]
 
     def post(self, request, format=None):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
             try:
                 data = serializer.validated_data
+                user_role = data.get("role")
+                worker_type = data.get("worker_type")
+                if user_role == USER_TYPE.WORKER and worker_type is None:
+                    return Response({"error": "Worker type cannot be null for a user who is a worker."}, status=status.HTTP_400_BAD_REQUEST)
+                user_created = User(
+                    email=data.get("email").lower().replace(" ", ""),
+                    first_name=data.get("first_name"),
+                    last_name=data.get("last_name"),
+                    phone=data.get("phone"),
+                    role=data.get("role"),
+                )
+                user_password = data.get('password')
+                password_validation.validate_password(
+                    user_password, user_created
+                )
+                user_created.set_password(user_password)
+                user_created.save()
+                if user_created.role == USER_TYPE.WORKER:
+                    Worker.objects.create(user=user_created, worker_type=data.get("worker_type"))
                 response = {
                     "status": "success",
                     "message": "User created successfully.",
@@ -120,14 +142,41 @@ class CreateUserView(APIView):
                 return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class UpdateUserView(APIView):
-    pass
+# Can only update current login user or active user
 
 
-class DeleteUserView(APIView):
-    pass
+class UpdateCurrentUserView(generics.UpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated, DisallowedUserPermission, DisallowedNotAdminManagementPermission]
+
+    def get_object(self):
+        return self.request.user
+
+# Update any user using user ID
 
 
-class UserProfileView(APIView):
-    pass
+class UpdateAnyUserView(generics.UpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated, DisallowedUserPermission, DisallowedNotAdminManagementPermission]
+
+    def get_queryset(self):
+        return get_user_model().objects.all()
+
+# Delete any user using user ID
+
+
+class DeleteAnyUserView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated, DisallowedUserPermission, DisallowedNotAdminManagementPermission]
+    queryset = get_user_model().objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.delete()
+        return Response({"status": "success", "message": "User deleted successfully."}, status=status.HTTP_200_OK)
+
+
+# You can view any user, also current user can view profile
+class ViewAnyUserView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated, DisallowedUserPermission, DisallowedNotAdminManagementPermission]
+    queryset = get_user_model().objects.all()
+    serializer_class = UserSerializer
